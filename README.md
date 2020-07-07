@@ -1,5 +1,11 @@
 # cache-buster
 
+## インストール
+
+```sh
+npm install https://github.com/takumi091111/cache-buster
+```
+
 ## 使い方
 
 ```
