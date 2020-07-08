@@ -1,6 +1,7 @@
 import URI from 'urijs'
 import { HTMLElement } from 'node-html-parser'
 import { calcHash } from './hash'
+import { ReplaceFunc } from '@/types'
 
 const getTimeStamp = () => {
   return Math.floor(Date.now() / 1000)
@@ -8,16 +9,11 @@ const getTimeStamp = () => {
 
 const replaceElementURL = async (
   element: HTMLElement,
-  replaceFunc: (
-    element: HTMLElement,
-    attrType: 'src' | 'href',
-    srcUrl: string
-  ) => HTMLElement | Promise<HTMLElement>
+  replaceFunc: ReplaceFunc
 ) => {
   const hasSrc = element.hasAttribute('src')
   const hasHref = element.hasAttribute('href')
   const hasAnyAttribute = hasSrc || hasHref
-
   // src属性とhref属性、どちらも存在しない場合は処理しない
   if (!hasAnyAttribute) return element
 
@@ -33,23 +29,19 @@ const replaceElementURL = async (
 
 const replaceElements = async (
   html: HTMLElement,
-  replaceFunc: (
-    element: HTMLElement,
-    attrType: 'src' | 'href',
-    srcUrl: string
-  ) => HTMLElement | Promise<HTMLElement>
+  replaceFunc: ReplaceFunc
 ) => {
   // data-bust-cache属性がtrueの要素を取得
   const elements = html.querySelectorAll('[data-bust-cache="true"]')
 
   // 書き換え済み要素
-  const newElements = elements.map(
+  const newElements = await Promise.all(elements.map(
     element => replaceElementURL(element, replaceFunc)
-  )
+  ))
 
   // 元の要素と書き換え済み要素を入れ替え
   for (let i = 0; i < elements.length; i++) {
-    html.exchangeChild(elements[i], await newElements[i])
+    html.exchangeChild(elements[i], newElements[i])
   }
 
   return html
