@@ -33,6 +33,6 @@ export const action = async ({ html, watch }: CommandProps) => {
     if (htmlPath === targetPath) return
 
     processFile(htmlPath)
-    console.info('✨  Process completed. File changes detected: ', path)
+    console.info('✨  Process completed. File changes detected:', path)
   })
 }
