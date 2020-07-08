@@ -40,7 +40,7 @@ Options:
 
 ```sh
 npx cachebuster --html ./dist/index.html
-✨ Update completed.
+✨  Process completed.
 ```
 
 ```html
@@ -52,5 +52,5 @@ npx cachebuster --html ./dist/index.html
 
 ```sh
 npx cachebuster --html ./dist/index.html --watch ./dist/*.js
-✨ Update completed. Watching for file changes:  dist/index.js
+✨  Process completed. File changes detected: dist/index.js
 ```
