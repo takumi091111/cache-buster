@@ -6,7 +6,32 @@ const getTimeStamp = () => {
   return Math.floor(Date.now() / 1000)
 }
 
-const replaceElementsURL = async (
+const replaceElementURL = async (
+  element: HTMLElement,
+  replaceFunc: (
+    element: HTMLElement,
+    attrType: 'src' | 'href',
+    srcUrl: string
+  ) => HTMLElement | Promise<HTMLElement>
+) => {
+  const hasSrc = element.hasAttribute('src')
+  const hasHref = element.hasAttribute('href')
+  const hasAnyAttribute = hasSrc || hasHref
+
+  // src属性とhref属性、どちらも存在しない場合は処理しない
+  if (!hasAnyAttribute) return element
+
+  // 要素のURL
+  const srcUrl = element.getAttribute('src') || element.getAttribute('href')
+  if (srcUrl === undefined) return element
+
+  // 要素の種類
+  const attrType = hasSrc ? 'src' : 'href'
+
+  return replaceFunc(element, attrType, srcUrl)
+}
+
+const replaceElements = async (
   html: HTMLElement,
   replaceFunc: (
     element: HTMLElement,
@@ -18,23 +43,9 @@ const replaceElementsURL = async (
   const elements = html.querySelectorAll('[data-bust-cache="true"]')
 
   // 書き換え済み要素
-  const newElements = elements.map(async element => {
-    const hasSrc = element.hasAttribute('src')
-    const hasHref = element.hasAttribute('href')
-    const hasAnyAttribute = hasSrc || hasHref
-
-    // src属性とhref属性、どちらも存在しない場合は処理しない
-    if (!hasAnyAttribute) return element
-
-    // 要素のURL
-    const srcUrl = element.getAttribute('src') || element.getAttribute('href')
-    if (srcUrl === undefined) return element
-
-    // 要素の種類
-    const attrType = hasSrc ? 'src' : 'href'
-
-    return replaceFunc(element, attrType, srcUrl)
-  })
+  const newElements = elements.map(
+    element => replaceElementURL(element, replaceFunc)
+  )
 
   // 元の要素と書き換え済み要素を入れ替え
   for (let i = 0; i < elements.length; i++) {
@@ -70,7 +81,7 @@ const appendQueryParam = (
 }
 
 export const appendTimeStamp = async (element: HTMLElement) => {
-  const _element = await replaceElementsURL(element, (elem, attrType, srcUrl) => {
+  const _element = await replaceElements(element, (elem, attrType, srcUrl) => {
     // クエリパラメータのキーと値
     const key = '_t'
     const value = getTimeStamp().toString()
@@ -83,7 +94,7 @@ export const appendMD5Hash = async (
   basePath: string,
   element: HTMLElement
 ) => {
-  const _element = await replaceElementsURL(element, async (elem, attrType, srcUrl) => {
+  const _element = await replaceElements(element, async (elem, attrType, srcUrl) => {
     const hash = await calcHash(basePath, srcUrl)
     // クエリパラメータのキーと値
     const key = '_h'
